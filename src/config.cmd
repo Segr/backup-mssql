@@ -11,6 +11,6 @@ SET EXCLUDE_DB=master name tempdb model msdb ReportServer ReportServerTempDB
 SET ARC_FOLDER=7-zip
 SET ARC_EXE=7z.exe
 SET ARC_EXT=zip
-SET ARC_PARM=a -mx=9
+SET ARC_PARM=a -mx=5
 
 SET COUNT_DAYS=30
