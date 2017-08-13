@@ -134,7 +134,7 @@ ECHO %LOG% >> "%CD%\tmplog.txt"
 ::
 SET LOG=Get list of DB to getnamebases.txt
 ::
-	"%PsExec% "%SQL_CMD%"%SQL_USER%%SQL_PASS% -i "%FOLDER_TEMP_LOCAL%\getnamebases.sql" > "%FOLDER_TEMP%\getnamebases.txt"
+	%PsExec% "%SQL_CMD%"%SQL_USER%%SQL_PASS% -i "%FOLDER_TEMP_LOCAL%\getnamebases.sql" > "%FOLDER_TEMP%\getnamebases.txt"
 	IF /i %ERRORLEVEL% GEQ 1 (
 		SET LOG=Error: Can't connect to SQL.
 		GOTO ERROR
@@ -259,7 +259,7 @@ ECHO %LOG% >> "%CD%\tmplog.txt"
 ::
 SET LOG=Create backup for "%1"
 ::
-	"%PsExec% "%SQL_CMD%"%SQL_USER%%SQL_PASS% -i "%FOLDER_TEMP_LOCAL%\%1.sql" > NUL
+	%PsExec% "%SQL_CMD%"%SQL_USER%%SQL_PASS% -i "%FOLDER_TEMP_LOCAL%\%1.sql" > NUL
 	IF /i %ERRORLEVEL% GEQ 1 (
 		SET LOG=Error: Can't connect to SQL for backup "%1".
 		GOTO ERROR
