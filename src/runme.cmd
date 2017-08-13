@@ -129,9 +129,18 @@ ECHO %LOG%... Done.
 ECHO %LOG%... Done. >> "log.txt"
 
 ::
-SET LOG=Delete old files
+SET LOG=Delete old files in FOLDER_BACKUP
 ::
 	FORFILES /p "%FOLDER_BACKUP%" /s /d -%COUNT_DAYS% /c "CMD /c DEL /f /a /q @file"
+::
+ECHO %LOG%... Done.
+ECHO %LOG%... Done. >> "log.txt"
+
+::
+SET LOG=Clear FOLDER_TEMP
+::
+	IF EXIST "%FOLDER_TEMP%\*.*" DEL /F /Q "%FOLDER_TEMP%\*.*"
+	IF EXIST "%FOLDER_TEMP%" RMDIR /Q "%FOLDER_TEMP%"
 ::
 ECHO %LOG%... Done.
 ECHO %LOG%... Done. >> "log.txt"
