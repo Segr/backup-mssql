@@ -9,6 +9,9 @@ SET "ATIME=%time:~0,2%-%time:~3,2%"
 IF "%time:~0,1%"==" " SET "ATIME=0%time:~1,1%-%time:~3,2%"
 SET "AFOLDER=%ADATE% %ATIME%"
 
+IF "%SQL_USER%" NEQ "" SET "SQL_USER= -U %SQL_USER%"
+IF "%SQL_PASS%" NEQ "" SET "SQL_PASS= -P %SQL_PASS%"
+
 ECHO. > "%CD%\tmplog.txt"
 ECHO -------------- %date% %time% -------------- >> "%CD%\tmplog.txt"
 ECHO. >> "%CD%\tmplog.txt"
@@ -99,7 +102,7 @@ ECHO %LOG% >> "%CD%\tmplog.txt"
 ::
 SET LOG=Get list of DB to getnamebases.txt
 ::
-	"%SQL_CMD%" -U %SQL_USER% -P %SQL_PASS% -i "%FOLDER_TEMP%\getnamebases.sql" > "%FOLDER_TEMP%\getnamebases.txt"
+	"%SQL_CMD%"%SQL_USER%%SQL_PASS% -i "%FOLDER_TEMP%\getnamebases.sql" > "%FOLDER_TEMP%\getnamebases.txt"
 	IF /i %ERRORLEVEL% GEQ 1 (
 		SET LOG=Error: Can't connect to SQL.
 		GOTO ERROR
@@ -240,31 +243,31 @@ SET LOG=Create backup for "%1" to "%FOLDER_TEMP_LOCAL%\%1.bak".
 ECHO %LOG% >> "%CD%\tmplog.txt"
 
 ::
-SET LOG=Create archive backup for "%1"
+SET LOG=Copy backup for "%1"
 ::
-	IF EXIST "%FOLDER_TEMP%\%1.%ARC_EXT%" DEL /F /Q "%FOLDER_TEMP%\%1.%ARC_EXT%"
-
-	"%ARC_PATH%\%ARC_EXE%" %ARC_PARM% "%FOLDER_TEMP%\%1.%ARC_EXT%" "%FOLDER_TEMP%\%1.bak" > NUL
-	IF NOT EXIST "%FOLDER_TEMP%\%1.%ARC_EXT%" (
-		SET LOG=Error: Can't create "%FOLDER_TEMP%\%1.%ARC_EXT%".
+	COPY /Y "%FOLDER_TEMP%\%1.bak" "%FOLDER_BACKUP%\%AFOLDER%\%1.bak" > NUL
+	IF NOT EXIST "%FOLDER_BACKUP%\%AFOLDER%\%1.bak" (
+		SET LOG=Error: Can't copy backup for "%1" to "%FOLDER_BACKUP%\%AFOLDER%".
 		GOTO ERROR
 	)
 	IF EXIST "%FOLDER_TEMP%\%1.bak" DEL /F /Q "%FOLDER_TEMP%\%1.bak"
 ::
 ECHO %LOG%... Done.
-SET LOG=Create archive backup for "%1" to "%FOLDER_TEMP%\%1.%ARC_EXT%".
+SET LOG=Copy backup for "%1" to "%FOLDER_BACKUP%\%AFOLDER%\%1.bak"
 ECHO %LOG% >> "%CD%\tmplog.txt"
 
 ::
-SET LOG=Copy archive backup for "%1"
+SET LOG=Create archive backup for "%1"
 ::
-	COPY /Y "%FOLDER_TEMP%\%1.%ARC_EXT%" "%FOLDER_BACKUP%\%AFOLDER%\%AFILE%.%ARC_EXT%" > NUL
+	IF EXIST "%FOLDER_BACKUP%\%AFOLDER%\%AFILE%.%ARC_EXT%" DEL /F /Q "%FOLDER_BACKUP%\%AFOLDER%\%AFILE%.%ARC_EXT%"
+	
+	"%ARC_PATH%\%ARC_EXE%" %ARC_PARM% "%FOLDER_BACKUP%\%AFOLDER%\%AFILE%.%ARC_EXT%" "%FOLDER_BACKUP%\%AFOLDER%\%1.bak" > NUL
 	IF NOT EXIST "%FOLDER_BACKUP%\%AFOLDER%\%AFILE%.%ARC_EXT%" (
-		SET LOG=Error: Can't copy archive backup for "%1" to "%FOLDER_BACKUP%\%AFOLDER%".
+		SET LOG=Error: Can't create "%FOLDER_BACKUP%\%AFOLDER%\%AFILE%.%ARC_EXT%".
 		GOTO ERROR
 	)
-	IF EXIST "%FOLDER_TEMP%\%1.%ARC_EXT%" DEL /F /Q "%FOLDER_TEMP%\%1.%ARC_EXT%"
+	IF EXIST "%FOLDER_BACKUP%\%AFOLDER%\%1.bak" DEL /F /Q "%FOLDER_BACKUP%\%AFOLDER%\%1.bak"
 ::
 ECHO %LOG%... Done.
-SET LOG=Copy archive backup for "%1" to "%FOLDER_BACKUP%\%AFOLDER%"
+SET LOG=Create archive backup for "%1" to "%FOLDER_BACKUP%\%AFOLDER%\%AFILE%.%ARC_EXT%".
 ECHO %LOG% >> "%CD%\tmplog.txt"
