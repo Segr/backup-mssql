@@ -3,18 +3,50 @@
 CALL config.cmd
 
 SET "FOLDER_BACKUP=%CD%\BACKUP"
-SET "FOLDER_TEMP=%CD%\TEMP"
+
+IF "%SQL_SERVER%" NEQ "" (
+	SET "FOLDER_TEMP=\\%SQL_SERVER%\C$\Windows\Temp\BackUpTemp"
+	SET "FOLDER_TEMP_LOCAL=C:\Windows\Temp\BackUpTemp"
+) ELSE (
+	SET "FOLDER_TEMP=%CD%\TEMP"
+	SET "FOLDER_TEMP_LOCAL=%CD%\TEMP"
+)
+
 SET "ADATE=%date:~6,4%-%date:~3,2%-%date:~0,2%"
 SET "ATIME=%time:~0,2%-%time:~3,2%"
 IF "%time:~0,1%"==" " SET "ATIME=0%time:~1,1%-%time:~3,2%"
 SET "AFOLDER=%ADATE% %ATIME%"
 
+IF "%SQL_SERVER_USER%" NEQ "" SET "SQL_SERVER_USER= -u %SQL_SERVER_USER%"
+IF "%SQL_SERVER_PASS%" NEQ "" SET "SQL_SERVER_PASS= -p %SQL_SERVER_PASS%"
 IF "%SQL_USER%" NEQ "" SET "SQL_USER= -U %SQL_USER%"
 IF "%SQL_PASS%" NEQ "" SET "SQL_PASS= -P %SQL_PASS%"
 
 ECHO. > "%CD%\tmplog.txt"
 ECHO -------------- %date% %time% -------------- >> "%CD%\tmplog.txt"
 ECHO. >> "%CD%\tmplog.txt"
+
+SET LOG=Search PsExec.exe
+::
+	IF NOT EXIST "%PsExec_PATH%\PsExec.exe" IF EXIST %windir%\system32\PsExec.exe SET "PsExec_PATH=%windir%\system32"
+	IF NOT EXIST "%PsExec_PATH%\PsExec.exe" IF EXIST PsExec.exe SET "PsExec_PATH=%~dp0"
+	IF NOT EXIST "%PsExec_PATH%\PsExec.exe" IF EXIST PsExec.exe SET "PsExec_PATH=%PsExec_PATH:~0,-1%"
+	IF NOT EXIST "%PsExec_PATH%\PsExec.exe" FOR /f "Usebackq Tokens=1 delims=," %%I IN (`DIR %systemdrive%\PsExec.exe /o:-s/s/p/b`) DO SET "PsExec_PATH=%%~dpI"
+	SET "LAST_CHAR=%PsExec_PATH:~-1%"
+	if "%LAST_CHAR%"=="\" SET "PsExec_PATH=%PsExec_PATH:~0,-1%"
+	IF NOT EXIST "%PsExec_PATH%\PsExec.exe" (
+		SET LOG=Error: Can't find PsExec.exe.
+		GOTO ERROR
+	)
+::
+ECHO %LOG%... Done.
+SET LOG=Find PsExec.exe in "%PsExec_PATH%"
+ECHO %LOG% >> "%CD%\tmplog.txt"
+
+SET "PsExec="
+IF "%SQL_SERVER%" NEQ "" (
+	SET "PsExec="%PsExec_PATH%\PsExec.exe"%SQL_SERVER_USER%%SQL_SERVER_PASS% \\%SQL_SERVER% "
+)
 
 ::
 SET LOG=Test "%FOLDER_BACKUP%"
@@ -102,7 +134,7 @@ ECHO %LOG% >> "%CD%\tmplog.txt"
 ::
 SET LOG=Get list of DB to getnamebases.txt
 ::
-	"%SQL_CMD%"%SQL_USER%%SQL_PASS% -i "%FOLDER_TEMP%\getnamebases.sql" > "%FOLDER_TEMP%\getnamebases.txt"
+	"%PsExec% "%SQL_CMD%"%SQL_USER%%SQL_PASS% -i "%FOLDER_TEMP_LOCAL%\getnamebases.sql" > "%FOLDER_TEMP%\getnamebases.txt"
 	IF /i %ERRORLEVEL% GEQ 1 (
 		SET LOG=Error: Can't connect to SQL.
 		GOTO ERROR
@@ -213,7 +245,7 @@ SET "AFILE=%1 (%ADATE% %ATIME%)"
 SET LOG=Create backup script for "%1"
 ::
 	ECHO declare @pathName nvarchar(512) > "%FOLDER_TEMP%\%1.sql"
-	ECHO set @pathName = '%FOLDER_TEMP%\%1.bak' >> "%FOLDER_TEMP%\%1.sql"
+	ECHO set @pathName = '%FOLDER_TEMP_LOCAL%\%1.bak' >> "%FOLDER_TEMP%\%1.sql"
 	ECHO backup database [%1] to disk = @pathName with noformat, noinit, name = N'db_backup', skip, norewind, nounload, stats = 10 >> "%FOLDER_TEMP%\%1.sql"
 	IF NOT EXIST "%FOLDER_TEMP%\%1.sql" (
 		SET LOG=Error: Can't create backup script for "%1".
@@ -227,7 +259,7 @@ ECHO %LOG% >> "%CD%\tmplog.txt"
 ::
 SET LOG=Create backup for "%1"
 ::
-	"%SQL_CMD%" -U %SQL_USER% -P %SQL_PASS% -i "%FOLDER_TEMP%\%1.sql" > NUL
+	"%PsExec% "%SQL_CMD%"%SQL_USER%%SQL_PASS% -i "%FOLDER_TEMP_LOCAL%\%1.sql" > NUL
 	IF /i %ERRORLEVEL% GEQ 1 (
 		SET LOG=Error: Can't connect to SQL for backup "%1".
 		GOTO ERROR

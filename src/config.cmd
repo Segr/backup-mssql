@@ -1,3 +1,7 @@
+:: SET "SQL_SERVER=********"
+:: SET "SQL_SERVER_USER=********"
+:: SET "SQL_SERVER_PASS=********"
+
 SET "SQL_CMD=C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\110\Tools\Binn\SQLCMD.EXE"
 SET "SQL_USER=sa"
 SET "SQL_PASS=********"
