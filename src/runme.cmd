@@ -1,6 +1,7 @@
 @echo off
 
 CALL config.cmd
+
 SET "FOLDER_BACKUP=%CD%\BACKUP"
 SET "FOLDER_TEMP=%CD%\TEMP"
 SET "ADATE=%date:~6,4%-%date:~3,2%-%date:~0,2%"
@@ -8,7 +9,7 @@ SET "ATIME=%time:~0,2%-%time:~3,2%"
 IF "%time:~0,1%"==" " SET "ATIME=0%time:~1,1%-%time:~3,2%"
 SET "AFOLDER=%ADATE% %ATIME%"
 
-ECHO -------------- %date% %time% -------------- >> "log.txt"
+ECHO -------------- %date% %time% -------------- >> "%CD%\tmplog.txt"
 
 ::
 SET LOG=Test "%FOLDER_BACKUP%"
@@ -26,7 +27,7 @@ SET LOG=Test "%FOLDER_BACKUP%"
 	IF EXIST "%FOLDER_BACKUP%\testfile.txt" DEL /F /Q "%FOLDER_BACKUP%\testfile.txt"
 ::
 ECHO %LOG%... Done.
-ECHO %LOG%... Done. >> "log.txt"
+ECHO %LOG%... Done. >> "%CD%\tmplog.txt"
 
 ::
 SET LOG=Test "%FOLDER_TEMP%"
@@ -44,7 +45,7 @@ SET LOG=Test "%FOLDER_TEMP%"
 	IF EXIST "%FOLDER_TEMP%\testfile.txt" DEL /F /Q "%FOLDER_TEMP%\testfile.txt"
 ::
 ECHO %LOG%... Done.
-ECHO %LOG%... Done. >> "log.txt"
+ECHO %LOG%... Done. >> "%CD%\tmplog.txt"
 
 ::
 SET LOG=Clear FOLDER_TEMP
@@ -52,7 +53,7 @@ SET LOG=Clear FOLDER_TEMP
 	IF EXIST "%FOLDER_TEMP%\*.*" DEL /F /Q "%FOLDER_TEMP%\*.*"
 ::
 ECHO %LOG%... Done.
-ECHO %LOG%... Done. >> "log.txt"
+ECHO %LOG%... Done. >> "%CD%\tmplog.txt"
 
 SET LOG=Search ARC
 ::
@@ -71,7 +72,7 @@ SET LOG=Search ARC
 ::
 SET LOG=Find ARC in "%ARC_PATH%"
 ECHO %LOG%... Done.
-ECHO %LOG%... Done. >> "log.txt"
+ECHO %LOG%... Done. >> "%CD%\tmplog.txt"
 
 ::
 SET LOG=Create SQL for get DB
@@ -87,7 +88,7 @@ SET LOG=Create SQL for get DB
 	)
 ::
 ECHO %LOG%... Done.
-ECHO %LOG%... Done. >> "log.txt"
+ECHO %LOG%... Done. >> "%CD%\tmplog.txt"
 
 ::
 SET LOG=Get list of DB to getnamebases.txt
@@ -104,7 +105,7 @@ SET LOG=Get list of DB to getnamebases.txt
 	IF EXIST "%FOLDER_TEMP%\getnamebases.sql" DEL /F /Q "%FOLDER_TEMP%\getnamebases.sql"
 ::
 ECHO %LOG%... Done.
-ECHO %LOG%... Done. >> "log.txt"
+ECHO %LOG%... Done. >> "%CD%\tmplog.txt"
 
 ::
 SET LOG=Get list of DB, exclude sys to namebases.txt
@@ -117,7 +118,25 @@ SET LOG=Get list of DB, exclude sys to namebases.txt
 	IF EXIST "%FOLDER_TEMP%\getnamebases.txt" DEL /F /Q "%FOLDER_TEMP%\getnamebases.txt"
 ::
 ECHO %LOG%... Done.
-ECHO %LOG%... Done. >> "log.txt"
+ECHO %LOG%... Done. >> "%CD%\tmplog.txt"
+
+::
+SET LOG=Test "%FOLDER_BACKUP%\%AFOLDER%"
+::
+	IF NOT EXIST "%FOLDER_BACKUP%\%AFOLDER%" md "%FOLDER_BACKUP%\%AFOLDER%"
+	IF NOT EXIST "%FOLDER_BACKUP%\%AFOLDER%" (
+		SET LOG=Error: Can't create folder "%FOLDER_BACKUP%\%AFOLDER%".
+		GOTO ERROR
+	)
+	ECHO . > "%FOLDER_BACKUP%\%AFOLDER%\testfile.txt"
+	IF NOT EXIST "%FOLDER_BACKUP%\%AFOLDER%\testfile.txt" (
+		SET LOG=Error: Can't write to folder "%FOLDER_BACKUP%\%AFOLDER%".
+		GOTO ERROR
+	)
+	IF EXIST "%FOLDER_BACKUP%\%AFOLDER%\testfile.txt" DEL /F /Q "%FOLDER_BACKUP%\%AFOLDER%\testfile.txt"
+::
+ECHO %LOG%... Done.
+ECHO %LOG%... Done. >> "%CD%\tmplog.txt"
 
 ::
 SET LOG=Loop namebases.txt
@@ -126,7 +145,7 @@ SET LOG=Loop namebases.txt
 	IF EXIST "%FOLDER_TEMP%\namebases.txt" DEL /F /Q "%FOLDER_TEMP%\namebases.txt"
 ::
 ECHO %LOG%... Done.
-ECHO %LOG%... Done. >> "log.txt"
+ECHO %LOG%... Done. >> "%CD%\tmplog.txt"
 
 ::
 SET LOG=Delete old files in FOLDER_BACKUP
@@ -134,7 +153,7 @@ SET LOG=Delete old files in FOLDER_BACKUP
 	FORFILES /p "%FOLDER_BACKUP%" /s /d -%COUNT_DAYS% /c "CMD /c DEL /f /a /q @file"
 ::
 ECHO %LOG%... Done.
-ECHO %LOG%... Done. >> "log.txt"
+ECHO %LOG%... Done. >> "%CD%\tmplog.txt"
 
 ::
 SET LOG=Clear FOLDER_TEMP
@@ -143,13 +162,27 @@ SET LOG=Clear FOLDER_TEMP
 	IF EXIST "%FOLDER_TEMP%" RMDIR /Q "%FOLDER_TEMP%"
 ::
 ECHO %LOG%... Done.
-ECHO %LOG%... Done. >> "log.txt"
+ECHO %LOG%... Done. >> "%CD%\tmplog.txt"
+
+IF NOT EXIST "%CD%\backuplog.txt" ECHO. > "%CD%\backuplog.txt"
+COPY /Y "%CD%\backuplog.txt"+"%CD%\tmplog.txt" "%CD%\backuplog.txt"
+IF EXIST "%CD%\tmplog.txt" DEL /F /Q "%CD%\tmplog.txt"
 
 GOTO :EOF
 
 :ERROR
 ECHO %LOG%
-ECHO %LOG% >> "log.txt"
+ECHO %LOG% >> "%CD%\tmplog.txt"
+
+if EXIST "%CD%\%MAIL_EXE%" (
+	"%CD%\%MAIL_EXE%" -f %MAIL_FROM% -o message-file=%CD%\tmplog.txt -u subject %MAIL_SUBJECT% -t %MAIL_TO% -s %MAIL_SERVER%
+)
+
+IF NOT EXIST "%CD%\backuplog.txt" ECHO. > "%CD%\backuplog.txt"
+COPY /Y "%CD%\backuplog.txt"+"%CD%\tmplog.txt" "%CD%\backuplog.txt"
+IF EXIST "%CD%\tmplog.txt" DEL /F /Q "%CD%\tmplog.txt"
+
+EXIT
 GOTO :EOF
 
 :DBLOOP
@@ -173,7 +206,7 @@ SET LOG=Create backup script for "%1"
 	)
 ::
 ECHO %LOG%... Done.
-ECHO %LOG%... Done. >> "log.txt"
+ECHO %LOG%... Done. >> "%CD%\tmplog.txt"
 ::
 SET LOG=Create backup for "%1"
 ::
@@ -189,12 +222,13 @@ SET LOG=Create backup for "%1"
 	IF EXIST "%FOLDER_TEMP%\%1.sql" DEL /F /Q "%FOLDER_TEMP%\%1.sql"
 ::
 ECHO %LOG%... Done.
-ECHO %LOG%... Done. >> "log.txt"
-IF EXIST "%FOLDER_TEMP%\%1.%ARC_EXT%" DEL /F /Q "%FOLDER_TEMP%\%1.%ARC_EXT%"
+ECHO %LOG%... Done. >> "%CD%\tmplog.txt"
 
 ::
 SET LOG=Create archive backup for "%1"
 ::
+	IF EXIST "%FOLDER_TEMP%\%1.%ARC_EXT%" DEL /F /Q "%FOLDER_TEMP%\%1.%ARC_EXT%"
+
 	"%ARC_PATH%\%ARC_EXE%" %ARC_PARM% "%FOLDER_TEMP%\%1.%ARC_EXT%" "%FOLDER_TEMP%\%1.bak" > NUL
 	IF NOT EXIST "%FOLDER_TEMP%\%1.%ARC_EXT%" (
 		SET LOG=Error: Can't create "%FOLDER_TEMP%\%1.%ARC_EXT%".
@@ -203,25 +237,7 @@ SET LOG=Create archive backup for "%1"
 	IF EXIST "%FOLDER_TEMP%\%1.bak" DEL /F /Q "%FOLDER_TEMP%\%1.bak"
 ::
 ECHO %LOG%... Done.
-ECHO %LOG%... Done. >> "log.txt"
-
-::
-SET LOG=Test "%FOLDER_BACKUP%\%AFOLDER%"
-::
-	IF NOT EXIST "%FOLDER_BACKUP%\%AFOLDER%" md "%FOLDER_BACKUP%\%AFOLDER%"
-	IF NOT EXIST "%FOLDER_BACKUP%\%AFOLDER%" (
-		SET LOG=Error: Can't create folder "%FOLDER_BACKUP%\%AFOLDER%".
-		GOTO ERROR
-	)
-	ECHO . > "%FOLDER_BACKUP%\%AFOLDER%\testfile.txt"
-	IF NOT EXIST "%FOLDER_BACKUP%\%AFOLDER%\testfile.txt" (
-		SET LOG=Error: Can't write to folder "%FOLDER_BACKUP%\%AFOLDER%".
-		GOTO ERROR
-	)
-	IF EXIST "%FOLDER_BACKUP%\%AFOLDER%\testfile.txt" DEL /F /Q "%FOLDER_BACKUP%\%AFOLDER%\testfile.txt"
-::
-ECHO %LOG%... Done.
-ECHO %LOG%... Done. >> "log.txt"
+ECHO %LOG%... Done. >> "%CD%\tmplog.txt"
 
 ::
 SET LOG=Copy archive backup for "%1"
@@ -235,4 +251,4 @@ SET LOG=Copy archive backup for "%1"
 ::
 ECHO %LOG%... Done.
 SET LOG=Copy archive backup for "%1" to "%FOLDER_BACKUP%\%AFOLDER%"
-ECHO %LOG%... Done. >> "log.txt"
+ECHO %LOG%... Done. >> "%CD%\tmplog.txt"

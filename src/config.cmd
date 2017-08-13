@@ -1,6 +1,7 @@
-SET "SQL_CMD=c:\Program Files\Microsoft SQL Server\Client SDK\ODBC\110\Tools\Binn\SQLCMD.EXE"
+SET "SQL_CMD=C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\110\Tools\Binn\SQLCMD.EXE"
 SET "SQL_USER=sa"
 SET "SQL_PASS=********"
+
 SET "EXCLUDE_DB=master name tempdb model msdb ReportServer ReportServerTempDB"
 
 :: SET "ARC_FOLDER=WinRAR"
@@ -14,3 +15,9 @@ SET "ARC_EXT=zip"
 SET "ARC_PARM=-add"
 
 SET "COUNT_DAYS=30"
+
+SET "MAIL_EXE=sendemail.exe"
+SET "MAIL_SERVER=********"
+SET "MAIL_FROM=********"
+SET "MAIL_TO=********"
+SET "MAIL_SUBJECT=Error BackUp MSSQL"
