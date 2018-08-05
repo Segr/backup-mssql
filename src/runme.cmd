@@ -196,6 +196,7 @@ ECHO %LOG% >> "%CD%\tmplog.txt"
 SET LOG=Delete old files in FOLDER_BACKUP
 ::
 	FORFILES /p "%FOLDER_BACKUP%" /s /d -%COUNT_DAYS% /c "CMD /c DEL /f /a /q @file"
+	FOR /d %%i IN ("%FOLDER_BACKUP%\*") DO RD /q "%%i" 2 > NUL
 ::
 ECHO %LOG%... Done.
 SET LOG=Delete old files in "%FOLDER_BACKUP%".
