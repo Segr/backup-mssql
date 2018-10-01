@@ -278,31 +278,31 @@ SET LOG=Create backup for "%1" to "%FOLDER_TEMP_LOCAL%\%1.bak".
 ECHO %LOG% >> "%CD%\tmplog.txt"
 
 ::
-SET LOG=Copy backup for "%1"
+SET LOG=Create archive backup for "%1"
 ::
-	COPY /Y "%FOLDER_TEMP%\%1.bak" "%FOLDER_BACKUP%\%AFOLDER%\%1.bak" > NUL
-	IF NOT EXIST "%FOLDER_BACKUP%\%AFOLDER%\%1.bak" (
-		SET LOG=Error: Can't copy backup for "%1" to "%FOLDER_BACKUP%\%AFOLDER%".
+	IF EXIST "%FOLDER_TEMP%\%AFILE%.%ARC_EXT%" DEL /F /Q "%FOLDER_TEMP%\%AFILE%.%ARC_EXT%"
+	
+	"%ARC_PATH%\%ARC_EXE%" %ARC_PARM% "%FOLDER_TEMP%\%AFILE%.%ARC_EXT%" "%FOLDER_TEMP%\%1.bak" > NUL
+	IF NOT EXIST "%FOLDER_TEMP%\%AFILE%.%ARC_EXT%" (
+		SET LOG=Error: Can't create "%FOLDER_TEMP%\%AFILE%.%ARC_EXT%".
 		GOTO ERROR
 	)
 	IF EXIST "%FOLDER_TEMP%\%1.bak" DEL /F /Q "%FOLDER_TEMP%\%1.bak"
 ::
 ECHO %LOG%... Done.
-SET LOG=Copy backup for "%1" to "%FOLDER_BACKUP%\%AFOLDER%\%1.bak"
+SET LOG=Create archive backup for "%1" to "%FOLDER_TEMP%\%AFILE%.%ARC_EXT%".
 ECHO %LOG% >> "%CD%\tmplog.txt"
 
 ::
-SET LOG=Create archive backup for "%1"
+SET LOG=Copy archive backup for "%1"
 ::
-	IF EXIST "%FOLDER_BACKUP%\%AFOLDER%\%AFILE%.%ARC_EXT%" DEL /F /Q "%FOLDER_BACKUP%\%AFOLDER%\%AFILE%.%ARC_EXT%"
-	
-	"%ARC_PATH%\%ARC_EXE%" %ARC_PARM% "%FOLDER_BACKUP%\%AFOLDER%\%AFILE%.%ARC_EXT%" "%FOLDER_BACKUP%\%AFOLDER%\%1.bak" > NUL
+	COPY /Y "%FOLDER_TEMP%\%AFILE%.%ARC_EXT%" "%FOLDER_BACKUP%\%AFOLDER%\%AFILE%.%ARC_EXT%" > NUL
 	IF NOT EXIST "%FOLDER_BACKUP%\%AFOLDER%\%AFILE%.%ARC_EXT%" (
-		SET LOG=Error: Can't create "%FOLDER_BACKUP%\%AFOLDER%\%AFILE%.%ARC_EXT%".
+		SET LOG=Error: Can't copy archive backup for "%1" to "%FOLDER_BACKUP%\%AFOLDER%".
 		GOTO ERROR
 	)
-	IF EXIST "%FOLDER_BACKUP%\%AFOLDER%\%1.bak" DEL /F /Q "%FOLDER_BACKUP%\%AFOLDER%\%1.bak"
+	IF EXIST "%FOLDER_TEMP%\%AFILE%.%ARC_EXT%" DEL /F /Q "%FOLDER_TEMP%\%AFILE%.%ARC_EXT%"
 ::
 ECHO %LOG%... Done.
-SET LOG=Create archive backup for "%1" to "%FOLDER_BACKUP%\%AFOLDER%\%AFILE%.%ARC_EXT%".
+SET LOG=Copy archive backup for "%1" to "%FOLDER_BACKUP%\%AFOLDER%\%AFILE%.%ARC_EXT%"
 ECHO %LOG% >> "%CD%\tmplog.txt"
