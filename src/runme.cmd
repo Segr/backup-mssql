@@ -2,7 +2,9 @@
 
 CALL config.cmd
 
-SET "FOLDER_BACKUP=%CD%\BACKUP"
+IF "%FOLDER_BACKUP%"=="" (
+	SET "FOLDER_BACKUP=%CD%\BACKUP"
+)
 
 IF "%SQL_SERVER%" NEQ "" (
 	SET "FOLDER_TEMP=\\%SQL_SERVER%\C$\Windows\Temp\BackUpTemp"
